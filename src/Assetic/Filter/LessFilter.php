@@ -47,6 +47,7 @@ class LessFilter implements FilterInterface
         static $format = <<<'EOF'
 var less = require('less');
 var sys  = require(process.binding('natives').util ? 'util' : 'sys');
+var fs = require('fs');
 
 new(less.Parser)(%s).parse(%s, function(e, tree) {
     if (e) {
@@ -55,7 +56,11 @@ new(less.Parser)(%s).parse(%s, function(e, tree) {
     }
 
     try {
-        sys.print(tree.toCSS(%s));
+        var out = tree.toCSS(%s);
+        fs.writeFile(%s, out, function(e){
+            sys.print(out);
+        });
+
     } catch (e) {
         less.writeError(e);
         process.exit(3);
@@ -88,11 +93,16 @@ EOF;
             $pb->setEnv('NODE_PATH', implode(':', $this->nodePaths));
         }
 
+        $pb->setEnv('SystemPath', $_SERVER['SystemPath']);
+
         $pb->add($this->nodeBin)->add($input = tempnam(sys_get_temp_dir(), 'assetic_less'));
+        $out = $input . ".css";
+
         file_put_contents($input, sprintf($format,
             json_encode($parserOptions),
             json_encode($asset->getContent()),
-            json_encode($treeOptions)
+            json_encode($treeOptions),
+            json_encode($out)
         ));
 
         $proc = $pb->getProcess();
@@ -103,7 +113,14 @@ EOF;
             throw new \RuntimeException($proc->getErrorOutput());
         }
 
-        $asset->setContent($proc->getOutput());
+        if (DIRECTORY_SEPARATOR !== '/') {
+            $asset->setContent(file_get_contents($out));
+        }else{
+            $asset->setContent($proc->getOutput());
+        }
+
+        unlink($out);
+
     }
 
     public function filterDump(AssetInterface $asset)
