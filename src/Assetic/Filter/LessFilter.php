@@ -59,6 +59,7 @@ new(less.Parser)(%s).parse(%s, function(e, tree) {
         var out = tree.toCSS(%s);
         fs.writeFile(%s, out, function(e){
             sys.print(out);
+            process.exit();
         });
 
     } catch (e) {
