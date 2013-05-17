@@ -94,7 +94,7 @@ EOF;
             $pb->setEnv('NODE_PATH', implode(':', $this->nodePaths));
         }
 
-        $pb->setEnv('SystemPath', $_SERVER['SystemPath']);
+        $pb->setEnv('SystemRoot', $_SERVER['SystemRoot']);
 
         $pb->add($this->nodeBin)->add($input = tempnam(sys_get_temp_dir(), 'assetic_less'));
         $out = $input . ".css";
