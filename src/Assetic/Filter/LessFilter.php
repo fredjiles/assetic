@@ -29,7 +29,7 @@ class LessFilter implements FilterInterface
      * Constructor.
      *
      * @param string $nodeBin   The path to the node binary
-     * @param array  $nodePaths An array of node paths
+     * @param array $nodePaths An array of node paths
      */
     public function __construct($nodeBin = '/usr/bin/node', array $nodePaths = array())
     {
@@ -76,7 +76,7 @@ EOF;
         // parser options
         $parserOptions = array();
         if ($root && $path) {
-            $parserOptions['paths'] = array(dirname($root.'/'.$path));
+            $parserOptions['paths'] = array(dirname($root . '/' . $path));
             $parserOptions['filename'] = basename($path);
         }
 
@@ -94,7 +94,9 @@ EOF;
             $pb->setEnv('NODE_PATH', implode(':', $this->nodePaths));
         }
 
-        $pb->setEnv('SystemRoot', $_SERVER['SystemRoot']);
+        if(isset($_SERVER['SystemRoot'])){
+            $pb->setEnv('SystemRoot', $_SERVER['SystemRoot']);
+        }
 
         $pb->add($this->nodeBin)->add($input = tempnam(sys_get_temp_dir(), 'assetic_less'));
         $out = $input . ".css";
@@ -114,9 +116,9 @@ EOF;
             throw new \RuntimeException($proc->getErrorOutput());
         }
 
-        if (DIRECTORY_SEPARATOR !== '/') {
+        if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
             $asset->setContent(file_get_contents($out));
-        }else{
+        } else {
             $asset->setContent($proc->getOutput());
         }
 
